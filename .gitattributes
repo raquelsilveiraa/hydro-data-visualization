@@ -1,0 +1,3 @@
+# Preserve supplied inputs byte-for-byte, including their original line endings.
+data/** -text
+trends.py -text

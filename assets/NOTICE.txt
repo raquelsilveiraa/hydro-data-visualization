@@ -1,0 +1,3 @@
+Plotly French locale: https://github.com/plotly/plotly.js/blob/master/dist/plotly-locale-fr.js
+Copyright Plotly, Inc.; distributed under the Plotly.js MIT license.
+Other local CSS/JavaScript assets are project presentation code.

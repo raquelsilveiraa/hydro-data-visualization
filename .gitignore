@@ -1,0 +1,44 @@
+# Local Python environments
+/.venv/
+/venv/
+/env/
+
+# Python and tool caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local analysis and browser artifacts
+/reports/
+/output/
+.coverage
+.coverage.*
+coverage.xml
+coverage.json
+htmlcov/
+
+# Local configuration and operating-system files
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Local-only development and validation files
+/tests/
+/pyproject.toml
+/requirements-dev.txt
+/VALIDATION.md
+# Screenshots and browser captures are not release assets
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.bmp
+*.tif
+*.tiff
+*.mp4
+*.webm
