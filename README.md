@@ -1,42 +1,21 @@
-# Orgeval ? carte des stations et s?ries temporelles
+﻿# hydro-data-visualization
 
-Static French-language presentation of the supplied groundwater technical test:
-three Plotly station charts and a Folium map with a real IGN basemap. No server
-or database is needed to view the generated website.
+Interactive groundwater charts and a station map for the Orgeval study area.
+The project transforms the supplied sensor CSVs and GIS layers into a static,
+French-language website using Python, Plotly and Folium.
 
-## Production files
+## Requirements
 
-```text
-main.py                     Load, validate, calculate and generate pages
-mapping.py                  Validate GIS layers and build the Folium map
-presentation.py             Shared French labels, units and formatting
-trends.py                   Original supplied trend method, unchanged
-index.html                  Landing-page template
-assets/                     Required map/chart CSS, JavaScript and notices
-data/piezo_data/            pzps1.csv, pzps3.csv, pzps4.csv
-data/GIS/                   Shapefiles and all supplied sidecar files
-requirements.txt            Runtime dependencies
-.gitignore                  Excludes local development artifacts
-.gitattributes              Preserves original input bytes
-.github/workflows/pages.yml Manual publication of docs/ only
-docs/
-    index.html
-    map_sensors_orgeval.html
-    pzps1.html
-    pzps3.html
-    pzps4.html
-    .nojekyll
-```
+- Python 3.10 or newer (tested with Python 3.12).
+- Dependencies listed in requirements.txt: NumPy, pandas, SciPy, Plotly,
+  GeoPandas, Folium, branca and Jinja2.
+- Internet access for the IGN basemap and external map libraries.
 
-The local tests, environments, reports, screenshots, development configuration
-and duplicate output/ are intentionally excluded from the release. Keep all
-supplied GIS sidecars together; they contain attributes, indexes and CRS metadata.
+## Run from the terminal
 
-## Install and generate
+Run these commands from the project root.
 
-Python 3.10 or newer is required; this release was checked with Python 3.12.
-Dependencies are NumPy, pandas, SciPy, Plotly, GeoPandas, Folium, branca and Jinja2.
-From the project root on Windows PowerShell:
+### Windows PowerShell
 
 ```powershell
 python -m venv .venv
@@ -44,55 +23,141 @@ python -m venv .venv
 .\.venv\Scripts\python.exe main.py
 ```
 
-On Linux/macOS:
+### Linux and macOS
 
-```sh
+```bash
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 .venv/bin/python main.py
 ```
 
-The generator writes five HTML pages to output/ and copies the publishing bundle
-to docs/, including its empty .nojekyll file. Open docs/index.html in a browser,
-or run `python -m http.server 8000 --directory docs` for a local preview.
-Changes to input files require running main.py again; HTML does not execute Python.
+Once installed, run only the last command to regenerate the website.
 
-## Execution hierarchy and calculations
+## View the website
 
-```text
-main.main()
-  load_sensor() -> validate/sort raw observations
-  trends.trend_detection_time(raw)
-    monthly_anomalies() -> monthly_means()
-  summarize_sensor() -> latest values and summary metrics
-  make_figure() -> display-only daily means and returned trend slope
-  write_chart() -> Plotly page with assets/chart.css and assets/chart.js
-  verify_sensor_matches() -> exact ID_SENSOR relationships
-  mapping.map_sensors_orgeval() -> CRS conversion and station map
-    sensor_popup() and MapControls -> assets/map.css and assets/map.js
-  publish_static_pages() -> landing page and docs/ copy
+Open docs/index.html in your browser. Alternatively, start a local server:
+
+```powershell
+.\.venv\Scripts\python.exe -m http.server 8000 --directory docs
 ```
 
-presentation.py supplies French labels/formatting to the rendering modules.
-The original CSVs use semicolons and day/month/year timestamps. Required columns
-are dates, Hydraulic Head [mNGF], Temperature [?C] and Conductivity [mS/cm].
-Invalid dates/numbers raise errors; missing measurements remain missing.
+On Linux/macOS, use `.venv/bin/python` instead of the Windows executable.
+Open http://localhost:8000 and press Ctrl+C in the terminal to stop the server.
 
-The upper chart panel shows hydraulic head in m NGF on the left and temperature
-in ?C plus its trend on the right. Conductivity in mS/cm occupies a separate lower
-panel. Daily means reduce rendering points only. Missing days remain gaps, with
-no interpolation or zero filling. Conductivity is unavailable for pzps1/pzps4;
-pzps3 displays only the supplied valid observations.
+The generated pages are:
 
-Only trend_detection_time computes the reported temperature trend, using complete
-raw observations. Its monthly means require 20 valid days; it removes calendar-
-month climatology and requires 36 valid months. The returned slope in ?C/decade is
-divided by 10 for plotting per year (365.25 days). The straight line is positioned
-at the mean valid raw temperature and mean corresponding timestamp; this anchor
-is visual positioning, not another fitted regression or forecast. Summary averages
-use valid daily means, distinct from averaging every raw sub-daily observation.
+| Page | Content |
+| --- | --- |
+| index.html | Landing page and navigation to the map and three stations |
+| map_sensors_orgeval.html | Interactive catchment map and station details |
+| pzps1.html | Groundwater, temperature and conductivity panels for pzps1 |
+| pzps3.html | Groundwater, temperature and conductivity panels for pzps3 |
+| pzps4.html | Groundwater, temperature and conductivity panels for pzps4 |
 
-## Station matching and map
+HTML files contain the generated results. They do not rerun Python or reload the
+CSVs: run main.py again after changing source code or inputs.
+
+## Project structure
+
+```text
+hydro-data-visualization/
+|-- main.py
+|-- mapping.py
+|-- presentation.py
+|-- trends.py
+|-- index.html
+|-- requirements.txt
+|-- assets/
+|   |-- chart.css
+|   |-- chart.js
+|   |-- map.css
+|   |-- map.js
+|   |-- plotly-locale-fr.js
+|   `-- NOTICE.txt
+|-- data/
+|   |-- piezo_data/          # Original sensor CSVs
+|   `-- GIS/                 # Original shapefiles and their sidecars
+|-- docs/                    # Generated website for static hosting
+|-- output/                  # Local generated copy; ignored by Git
+|-- .github/workflows/pages.yml
+|-- .gitattributes
+`-- .gitignore
+```
+
+## What each file does
+
+| File or folder | Responsibility and effect on the website |
+| --- | --- |
+| main.py | Orchestrates CSV loading, validation, trend calculations, station summaries, Plotly charts, map creation and HTML generation. |
+| mapping.py | Validates GIS layers, reprojects coordinates, matches station IDs and builds the Folium map with layers and station details. |
+| presentation.py | Centralizes French variable labels, units and number/date formatting used in the interface. |
+| trends.py | Supplied scientific method for monthly aggregation, deseasonalization and temperature trend estimation. Kept unchanged. |
+| index.html | Landing-page template used by the generator to create website navigation. |
+| assets/chart.css | Styles the station pages, chart headers, controls and responsive layout. |
+| assets/chart.js | Implements curve selection, time navigation, panning and reset controls. |
+| assets/map.css | Styles the map, search, legend, controls and station-details panel. |
+| assets/map.js | Handles search, station selection, details, map interactions and tile-failure warnings. |
+| assets/plotly-locale-fr.js | Provides French translations for Plotly controls. |
+| assets/NOTICE.txt | Records third-party asset attribution. |
+| data/piezo_data/ | Contains pzps1.csv, pzps3.csv and pzps4.csv with the original observations. |
+| data/GIS/ | Contains station geometries, catchment boundary and hydrography. Keep shapefiles and all supplied sidecars together. |
+| requirements.txt | Lists the Python packages needed to generate the website. |
+| output/ | Receives locally generated HTML pages. |
+| docs/ | Contains the same five pages and .nojekyll, ready for static hosting. |
+| .github/workflows/pages.yml | Provides a manually triggered GitHub Pages deployment of docs/. |
+| .gitattributes | Prevents Git text conversion from changing supplied input files and trends.py. |
+| .gitignore | Keeps environments, caches and local development artifacts out of Git. |
+
+## Processing workflow
+
+```text
+main.py
+  -> load_sensor(): read and validate original CSV observations
+  -> trends.trend_detection_time(): calculate the temperature trend
+  -> summarize_sensor(): prepare latest values and summary metrics
+  -> make_figure(): build display series and Plotly panels
+  -> write_chart(): combine figures, styles and interactions into HTML
+  -> verify_sensor_matches(): check the exact CSV-to-GIS relationships
+  -> mapping.map_sensors_orgeval(): create the interactive station map
+  -> publish_static_pages(): generate navigation and copy pages into docs/
+```
+
+presentation.py supplies shared display labels and formatting. The CSS and
+JavaScript assets are included in the generated HTML by the Python modules.
+Opening the website requires no Python server or database.
+
+## Data and chart interpretation
+
+The CSVs use semicolons and day/month/year timestamps. Required columns are:
+
+- dates
+- Hydraulic Head [mNGF]
+- Temperature [°C]
+- Conductivity [mS/cm]
+
+Dates and numeric fields are validated. Missing measurements remain missing;
+they are not interpolated or replaced with zero.
+
+The upper chart panel shows hydraulic head in m NGF on the left axis and
+temperature in °C on the right. The dashed thermal trend shares the temperature
+axis, with its value reported in °C per decade in the title. Conductivity in
+mS/cm appears in a separate panel with the same date axis.
+
+Daily means are used only to reduce the number of displayed points. The supplied
+trend_detection_time function receives the original observations and calculates
+the trend from deseasonalized monthly anomalies. The displayed straight line
+uses that returned slope, divided by 10 to convert decades to years, and is
+anchored at the mean valid raw temperature and its mean timestamp. The anchor
+positions the line; it does not fit a second trend or create a forecast.
+
+Conductivity is unavailable for pzps1 and pzps4 and is explicitly marked as such.
+For pzps3, only valid supplied measurements are displayed. Missing periods remain
+gaps. Latest values in station details use a separate valid timestamp for each
+variable.
+
+## Map and station matching
+
+CSV measurements and chart links are attached only through these exact keys:
 
 | CSV | GIS ID_SENSOR |
 | --- | ---: |
@@ -100,47 +165,26 @@ use valid daily means, distinct from averaging every raw sub-daily observation.
 | pzps3.csv | 4 |
 | pzps4.csv | 8 |
 
-Only those exact keys receive CSV measurements and chart links. Other stations
-show supplied GIS metadata and a French no-series message. Latest valid values
-are selected separately for each variable with its own timestamp; missing values
-are shown as Non disponible.
+Other stations show their available GIS metadata and a French message stating
+that no time series was supplied. No name approximation or proximity matching is
+used.
 
-Sensors are supplied in EPSG:2154; catchment and hydrography in EPSG:27572.
-Declared CRSs are validated and reprojected to EPSG:4326; Folium receives
-latitude/longitude. The catchment remains its supplied line geometry.
-The map contains 52 positioned stations (44 piezometers, 8 river stations),
-one catchment feature and 19 hydrographic segments. Four records have no location:
-GRANGES-PZ3, RIV_LOGE, RIV_MELARCHEZ, RIV_THEIL. They are disclosed, not positioned.
+The map includes the catchment boundary, hydrographic network, 44 piezometers
+and 8 river stations. Source coordinates are reprojected from their declared
+CRSs to EPSG:4326 before use in Folium. Four stations have no supplied coordinates
+and are listed without invented locations: GRANGES-PZ3, RIV_LOGE, RIV_MELARCHEZ
+and RIV_THEIL.
 
-## Publish on GitHub Pages
+## Static hosting
 
-Publish only docs/ as the website. All page links are relative and work under a
-repository-name URL prefix. Keep an existing working Pages setup if present;
-do not add a duplicate workflow. Otherwise, the supplied manual workflow can be
-used after committing the production files to your intended GitHub repository:
-
-1. In Settings -> Pages -> Source, select GitHub Actions.
-2. In Actions, run Publish GitHub Pages on the intended branch.
-3. Wait for deployment success and open the public HTTPS URL shown by GitHub.
-4. Verify index.html, map_sensors_orgeval.html and all three chart pages online.
-
-A branch-based existing setup may instead publish its configured branch /docs.
-Regenerate and commit docs/ whenever source or inputs change. Never force-push.
-Do not stage tests/, reports/, output/, environments or screenshots.
-
-Repository: https://github.com/raquelsilveiraa/hydro-data-visualization
-
-The source repository is private. GitHub repository file links require authorized
-login and do not render the interactive website. Pages availability for a private
-repository depends on the account plan. After enabling Pages, its intended site
-address is https://raquelsilveiraa.github.io/hydro-data-visualization/ ; this is
-not a claim of successful deployment. Making the repository public exposes the
-tracked CSV/GIS files; website deployment itself publishes only docs/.
+The docs/ folder is the publishing bundle. It contains five HTML pages and an
+empty .nojekyll file. Relative links support hosting under a repository path.
+The included GitHub Pages workflow publishes this folder when run manually.
+Regenerate and commit docs/ whenever the website needs to be updated.
 
 ## Limitations
 
-IGN tiles and map JavaScript/CSS dependencies require internet. Tile failures
-show a French warning; unavailable external services are separate from application
-errors. Chart pages bundle Plotly and are about 5.5 MB each. No external forecasts,
-rainfall, discharge, inferred coordinates or water-level classifications are added.
-Local tests are retained outside the release; they are not installation requirements.
+The map requires internet access for IGN tiles and external mapping libraries;
+if tiles fail, the interface displays a warning. The chart pages bundle Plotly
+and can be opened offline. Only three stations have supplied time series. No
+forecasts, discharge, rainfall or inferred measurements are included.
