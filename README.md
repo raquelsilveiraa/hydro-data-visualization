@@ -1,4 +1,4 @@
-﻿# hydro-data-visualization
+# hydro-data-visualization
 
 Interactive groundwater charts and a station map for the Orgeval study area.
 The project transforms the supplied sensor CSVs and GIS layers into a static,
@@ -61,6 +61,7 @@ CSVs: run main.py again after changing source code or inputs.
 
 ```text
 hydro-data-visualization/
+|-- app.py                  # Streamlit presentation of generated pages
 |-- main.py
 |-- mapping.py
 |-- presentation.py
@@ -88,6 +89,7 @@ hydro-data-visualization/
 
 | File or folder | Responsibility and effect on the website |
 | --- | --- |
+| app.py | Presents generated pages in Streamlit with view selection and HTML downloads; does not recalculate observations. |
 | main.py | Orchestrates CSV loading, validation, trend calculations, station summaries, Plotly charts, map creation and HTML generation. |
 | mapping.py | Validates GIS layers, reprojects coordinates, matches station IDs and builds the Folium map with layers and station details. |
 | presentation.py | Centralizes French variable labels, units and number/date formatting used in the interface. |
@@ -188,3 +190,33 @@ The map requires internet access for IGN tiles and external mapping libraries;
 if tiles fail, the interface displays a warning. The chart pages bundle Plotly
 and can be opened offline. Only three stations have supplied time series. No
 forecasts, discharge, rainfall or inferred measurements are included.
+
+## Streamlit presentation
+
+app.py presents the existing docs/ HTML pages with French navigation and a page
+download button. It does not recalculate trends or modify source data. Navigation
+links inside embedded pages open the matching app view in a new browser tab.
+The standalone HTML generation and GitHub Pages workflow remain available.
+
+After installing requirements.txt, run from the project root:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+Use `.venv/bin/python -m streamlit run app.py` on Linux/macOS.
+If you change data or chart/map code, regenerate docs/ using main.py before
+updating the app. Streamlit displays the committed HTML rather than rebuilding it.
+
+To deploy, open https://share.streamlit.io/ and connect the GitHub account with
+access to the private repository. Choose Create app and configure:
+
+- Repository: raquelsilveiraa/hydro-data-visualization
+- Branch: main
+- Main file path: app.py
+- Python: 3.12
+
+Click Deploy. Streamlit assigns the application URL after deployment; no active
+application URL is assumed in this README. A private-source app is private by
+default; configure its viewer permissions or make the app public separately from
+the repository. A public app exposes the measurements embedded in the HTML.
